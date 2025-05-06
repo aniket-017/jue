@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import CONFIG from "../config/api";
 
 const CandidateTranscription = ({ localStream }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -6,7 +7,7 @@ const CandidateTranscription = ({ localStream }) => {
   // Function to send transcription via HTTP POST
   const sendTranscription = async (transcript) => {
     try {
-      const response = await fetch("http://localhost:3031/api/transcription", {
+      const response = await fetch(CONFIG.NODE_API.TRANSCRIPTION, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +59,7 @@ const CandidateTranscription = ({ localStream }) => {
     });
 
     // Connect to Deepgram
-    const deepgramSocket = new WebSocket("wss://api.deepgram.com/v1/listen", [
+    const deepgramSocket = new WebSocket(CONFIG.EXTERNAL.DEEPGRAM, [
       "token",
       "1f3fc83e4559e5e5db749b92a75fbd0d66813d3e",
     ]);

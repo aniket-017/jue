@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import marked from "marked";
+import CONFIG from "../config/api";
 
 const InterviewAssistant = ({ localStream }) => {
   const [transcript, setTranscript] = useState("");
@@ -14,7 +15,7 @@ const InterviewAssistant = ({ localStream }) => {
 
   const resetInterview = async () => {
     try {
-      const response = await fetch("http://localhost:8004/reset", {
+      const response = await fetch(CONFIG.PYTHON_API.RESET, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,7 +38,7 @@ const InterviewAssistant = ({ localStream }) => {
 
     setIsAnalyzing(true);
     try {
-      const response = await fetch("http://localhost:8004/analyze", {
+      const response = await fetch(CONFIG.PYTHON_API.ANALYZE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,13 +100,13 @@ const InterviewAssistant = ({ localStream }) => {
     });
 
     // Connect to Deepgram
-    const deepgramSocket = new WebSocket("wss://api.deepgram.com/v1/listen", [
+    const deepgramSocket = new WebSocket(CONFIG.EXTERNAL.DEEPGRAM, [
       "token",
       "1f3fc83e4559e5e5db749b92a75fbd0d66813d3e",
     ]);
 
     // Connect to Python backend
-    pythonSocketRef.current = new WebSocket("ws://localhost:8004/ws/transcription");
+    pythonSocketRef.current = new WebSocket(CONFIG.PYTHON_API.WS_TRANSCRIPTION);
 
     pythonSocketRef.current.onopen = () => {
       console.log("Connected to Python backend");

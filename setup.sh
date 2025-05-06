@@ -5,16 +5,16 @@ set -e
 
 echo "Setting up application..."
 
-# Install Node.js dependencies
+# Install Node.js dependencies for backend
 echo "Installing Node.js backend dependencies..."
 cd back-end
-npm install
+npm install --force
 cd ..
 
 # Install frontend dependencies and build
 echo "Installing frontend dependencies and building..."
 cd front-end
-npm install
+npm install --force
 npm run build
 cd ..
 
@@ -31,4 +31,4 @@ then
     npm install -g pm2
 fi
 
-echo "Setup complete! To start the application, run: pm2 start ecosystem.config.js" 
+echo "Setup complete! To start the application, run: ./start.sh" 

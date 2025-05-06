@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import CONFIG from "../config/api";
 
 const InterviewAssistant = ({ localStream }) => {
   const [transcript, setTranscript] = useState("");
@@ -16,7 +17,7 @@ const InterviewAssistant = ({ localStream }) => {
   // Function to send transcription via HTTP POST
   const sendTranscription = async (transcript) => {
     try {
-      const response = await fetch("http://localhost:3031/api/transcription", {
+      const response = await fetch(CONFIG.NODE_API.TRANSCRIPTION, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,7 +41,7 @@ const InterviewAssistant = ({ localStream }) => {
   // Function to fetch transcriptions
   const fetchTranscriptions = async () => {
     try {
-      const response = await fetch("http://localhost:3031/api/transcriptions");
+      const response = await fetch(CONFIG.NODE_API.TRANSCRIPTIONS);
       const data = await response.json();
 
       // Process candidate transcriptions
@@ -70,13 +71,13 @@ const InterviewAssistant = ({ localStream }) => {
       setCurrentQuestion("");
 
       // Clear backend transcripts
-      await fetch("http://localhost:3031/api/transcriptions/clear", {
+      await fetch(CONFIG.NODE_API.CLEAR_TRANSCRIPTIONS, {
         method: "POST",
       });
 
       // Reset on Python backend too (if needed)
       try {
-        const response = await fetch("http://localhost:8004/reset", {
+        const response = await fetch(CONFIG.PYTHON_API.RESET, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -167,7 +168,7 @@ const InterviewAssistant = ({ localStream }) => {
     try {
       console.log("Sending for analysis:", combinedTranscript);
 
-      const response = await fetch("http://localhost:8004/analyze", {
+      const response = await fetch(CONFIG.PYTHON_API.ANALYZE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -245,7 +246,7 @@ const InterviewAssistant = ({ localStream }) => {
 
       // Clear backend transcripts
       try {
-        await fetch("http://localhost:3031/api/transcriptions/clear", {
+        await fetch(CONFIG.NODE_API.CLEAR_TRANSCRIPTIONS, {
           method: "POST",
         });
       } catch (error) {
@@ -305,7 +306,7 @@ const InterviewAssistant = ({ localStream }) => {
     });
 
     // Connect to Deepgram
-    const deepgramSocket = new WebSocket("wss://api.deepgram.com/v1/listen", [
+    const deepgramSocket = new WebSocket(CONFIG.EXTERNAL.DEEPGRAM, [
       "token",
       "1f3fc83e4559e5e5db749b92a75fbd0d66813d3e",
     ]);

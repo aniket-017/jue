@@ -1,0 +1,102 @@
+name: Node.js & Python CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+
+      # Step 3: Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # Step 4: Setup SSH for Deployment
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H meetings.aiiventure.com >> ~/.ssh/known_hosts
+
+      # Step 5: Deploy to the server
+      - name: Deploy to server
+        if: github.ref == 'refs/heads/main'
+        run: |
+          ssh root@meetings.aiiventure.com << 'EOF'
+            # Backup environment files if they exist
+            if [ -f ~/jue/back-end/.env ]; then
+              cp ~/jue/back-end/.env ~/.env.backend.bak
+            fi
+            
+            if [ -f ~/jue/python-backend/.env ]; then
+              cp ~/jue/python-backend/.env ~/.env.python.bak
+            fi
+
+            # Use git pull if the repository exists; otherwise, clone it
+            if [ -d ~/jue ]; then
+              cd ~/jue
+              git pull origin main
+            else
+              git clone https://github.com/aniket-017/jue.git ~/jue
+              cd ~/jue
+            fi
+
+            # Restore environment files if backups exist
+            if [ -f ~/.env.backend.bak ]; then
+              mv ~/.env.backend.bak ~/jue/back-end/.env
+            fi
+            
+            if [ -f ~/.env.python.bak ]; then
+              mv ~/.env.python.bak ~/jue/python-backend/.env
+            fi
+
+            # Install backend dependencies
+            cd ~/jue/back-end
+            npm install --force
+            
+            # Install frontend dependencies and build
+            cd ~/jue/front-end
+            npm install --force
+            npm run build
+            
+            # Install Python dependencies
+            cd ~/jue/python-backend
+            pip3 install -r requirements.txt
+            
+            # Copy the updated nginx config
+            cp ~/jue/nginx.conf /etc/nginx/sites-available/meetings.aiiventure.com
+            ln -sf /etc/nginx/sites-available/meetings.aiiventure.com /etc/nginx/sites-enabled/
+            nginx -t && systemctl reload nginx
+            
+            # Restart the application using PM2
+            cd ~/jue
+            if pm2 list | grep -q "jue-node-backend\|jue-python-backend"; then
+              echo "Restarting applications"
+              pm2 restart ecosystem.config.js
+            else
+              echo "Starting applications"
+              pm2 start ecosystem.config.js
+            fi
+
+            # Check the status of PM2 processes
+            pm2 list
+          EOF

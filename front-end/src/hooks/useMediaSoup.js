@@ -7,6 +7,7 @@ import getMic2 from "../utils/getMic2";
 import createProducerTransport from "../utils/mediaSoupFunctions/createProducerTransport";
 import createProducer from "../utils/mediaSoupFunctions/createProducer";
 import requestTransportToConsume from "../utils/mediaSoupFunctions/requestTransportToConsume";
+import CONFIG from "../config/api";
 
 const useMediaSoup = () => {
   const [socket, setSocket] = useState(null);
@@ -29,7 +30,7 @@ const useMediaSoup = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    const socketInstance = io.connect("http://localhost:3031");
+    const socketInstance = io.connect(CONFIG.NODE_API.SOCKET_URL);
 
     socketInstance.on("connect", () => {
       console.log("Connected to socket server");

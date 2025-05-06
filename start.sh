@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Start both backends using PM2
+# Start all backends using PM2
 echo "Starting application with PM2..."
 pm2 start ecosystem.config.js
 

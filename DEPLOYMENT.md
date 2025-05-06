@@ -14,8 +14,8 @@ This guide will help you deploy the application on your Ubuntu server.
 ### 1. Clone the repository
 
 ```bash
-git clone [your-repository-url]
-cd [repository-directory]
+git clone https://github.com/aniket-017/jue.git
+cd https://github.com/aniket-017/jue.git
 ```
 
 ### 2. Install dependencies and set up the application
